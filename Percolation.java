@@ -3,34 +3,28 @@
  *  Coursera User ID:  b38ab3d10530110bb13487a0a9254f25
  **************************************************************************** */
 
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
 public class Percolation {
     private final int size;
-    private final int[] grid1;
+    private final boolean[] isOpenedArray;
+    private final int virtualBottomSite;
+    private final int virtualTopSite;
+    private final WeightedQuickUnionUF weightedQuickUnionUF;
 
-    private int virtualBottomSite;
-
-    private int virtualTopSite;
     private int openSitesCount = 0;
 
     public Percolation(int n) {
         if (n <= 0) {
             throw new IllegalArgumentException();
         }
-        grid1 = new int[n * n + 2];
+        isOpenedArray = new boolean[n * n];
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                int index = i * n + j;
-                grid1[index] = index;
-            }
-        }
+        weightedQuickUnionUF = new WeightedQuickUnionUF(n * n + 2);
 
         size = n;
         virtualTopSite = n * n;
         virtualBottomSite = n * n + 1;
-
-        grid1[virtualTopSite] = virtualTopSite;
-        grid1[virtualBottomSite] = virtualBottomSite;
     }
 
     public void open(int row, int column) {
@@ -38,23 +32,22 @@ public class Percolation {
 
         int index = mapToOneDimensionArrayIndex(row, column);
 
-        if (isOpen(index)) {
+        if (isOpenedArray[index]) {
             return;
         }
 
         openSitesCount++;
+        isOpenedArray[index] = true;
 
         boolean isFirstRow = row == 1;
         boolean isFirstColumn = column == 1;
         boolean isLastRow = row == size;
         boolean isLastColumn = column == size;
 
-        grid1[index] = -index;
-
         if (!isFirstRow) {
             int siteAboveIndex = index - size;
 
-            if (isOpen(siteAboveIndex)) {
+            if (isOpenedArray[siteAboveIndex]) {
                 union(index, siteAboveIndex);
             }
         }
@@ -65,7 +58,7 @@ public class Percolation {
         if (!isLastRow) {
             int siteBelow = index + size;
 
-            if (isOpen(siteBelow)) {
+            if (isOpenedArray[siteBelow]) {
                 union(index, siteBelow);
             }
         }
@@ -76,7 +69,7 @@ public class Percolation {
         if (!isFirstColumn) {
             int siteOnLeft = index - 1;
 
-            if (isOpen(siteOnLeft)) {
+            if (isOpenedArray[siteOnLeft]) {
                 union(index, siteOnLeft);
             }
         }
@@ -84,7 +77,7 @@ public class Percolation {
         if (!isLastColumn) {
             int siteOnRight = index + 1;
 
-            if (isOpen(siteOnRight)) {
+            if (isOpenedArray[siteOnRight]) {
                 union(index, siteOnRight);
             }
         }
@@ -93,7 +86,7 @@ public class Percolation {
     public boolean isOpen(int row, int column) {
         validate(row, column);
 
-        return isOpen(mapToOneDimensionArrayIndex(row, column));
+        return isOpenedArray[mapToOneDimensionArrayIndex(row, column)];
     }
 
     public boolean isFull(int row, int column) {
@@ -115,36 +108,12 @@ public class Percolation {
         return row * size + column;
     }
 
-    private boolean isOpen(int index) {
-        int value = grid1[index];
-
-        if (value != index) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
     private int findRoot(int index) {
-        while (grid1[index] != index && grid1[index] != -index) {
-            index = grid1[index];
-        }
-
-        return index;
+        return weightedQuickUnionUF.find(index);
     }
 
     private void union(int index1, int index2) {
-        int root1 = findRoot(index1);
-        int root2 = findRoot(index2);
-
-        if (root1 == root2) {
-            return;
-        }
-
-        //no weighted. simple quick union:
-        grid1[root1] = Math.abs(root2);
-        grid1[root2] = Math.abs(root2);
+        weightedQuickUnionUF.union(index1, index2);
     }
 
     private boolean isConnected(int index1, int index2) {
@@ -159,7 +128,7 @@ public class Percolation {
     }
 
     private void validate(int row, int col) {
-        if (row < 1 || col < 1) {
+        if (row < 1 || col < 1 || row > size || col > size) {
             throw new IllegalArgumentException();
         }
     }

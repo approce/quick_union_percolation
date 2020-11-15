@@ -3,22 +3,15 @@
  *  Coursera User ID:  b38ab3d10530110bb13487a0a9254f25
  **************************************************************************** */
 
-
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
-    double[] percolationRates;
-    int experimentsCount;
+    private final double[] percolationRates;
+    private final int experimentsCount;
 
-    // perform independent trials on an n-by-n grid
     public PercolationStats(int gridSize, int experimentsCount) {
-        // WeightedQuickUnionUF()
-        // StdRandom();
-        // StdStats()
-
-
         if (gridSize <= 0 || experimentsCount <= 0) {
             throw new IllegalArgumentException();
         }
@@ -29,14 +22,12 @@ public class PercolationStats {
         for (int i = 0; i < experimentsCount; i++) {
             Percolation percolation = new Percolation(gridSize);
 
-            int opensites = 0;
             while (!percolation.percolates()) {
                 int row = StdRandom.uniform(1, gridSize + 1);
                 int column = StdRandom.uniform(1, gridSize + 1);
 
                 if (!percolation.isOpen(row, column)) {
                     percolation.open(row, column);
-                    opensites++;
                 }
             }
 
@@ -72,8 +63,8 @@ public class PercolationStats {
             throw new IllegalArgumentException();
         }
 
-        int gridSize = 200;
-        int retries = 100;
+        int gridSize = Integer.parseInt(args[0]);
+        int retries = Integer.parseInt(args[1]);
 
         long start = System.currentTimeMillis();
         PercolationStats percolationStats = new PercolationStats(gridSize, retries);
@@ -87,7 +78,5 @@ public class PercolationStats {
         StdOut.println("mean                    = " + percolationStats.mean());
         StdOut.println("stddev                  = " + percolationStats.stddev());
         StdOut.println("95% confidence interval = " + confidence);
-
     }
-
 }
